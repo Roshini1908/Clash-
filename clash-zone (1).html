@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clash Zone</title>
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --red: #ff2020;
+      --orange: #ff6a00;
+      --yellow: #ffd700;
+      --dark: #0a0a0f;
+      --darker: #050508;
+      --panel: #10101a;
+      --border: #2a2a3a;
+      --text: #e8e8f0;
+      --muted: #888899;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--darker);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      cursor: crosshair;
+    }
+
+    /* ── Animated BG ── */
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(255,32,32,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,32,32,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      animation: gridDrift 20s linear infinite;
+    }
+    @keyframes gridDrift { to { background-position: 60px 60px; } }
+
+    .bg-glow {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 20% 50%, rgba(255,32,32,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 30% at 80% 30%, rgba(255,106,0,0.07) 0%, transparent 70%);
+    }
+
+    /* Floating sparks */
+    .sparks { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .spark {
+      position: absolute;
+      width: 2px; height: 2px;
+      border-radius: 50%;
+      background: var(--yellow);
+      animation: sparkFloat linear infinite;
+      opacity: 0;
+    }
+    @keyframes sparkFloat {
+      0%   { transform: translateY(100vh) translateX(0); opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 0.6; }
+      100% { transform: translateY(-10vh) translateX(40px); opacity: 0; }
+    }
+
+    /* ── Layout ── */
+    .wrapper { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(5,5,8,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 24px; max-width: 1100px; margin: 0 auto;
+    }
+    .nav-logo {
+      font-family: 'Black Ops One', sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, var(--red), var(--orange));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .nav-links { display: flex; gap: 28px; list-style: none; }
+    .nav-links a {
+      color: var(--muted); text-decoration: none;
+      font-weight: 600; font-size: 0.95rem;
+      letter-spacing: 1px; text-transform: uppercase;
+      transition: color .2s;
+      position: relative;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute; bottom: -3px; left: 0;
+      width: 0; height: 2px;
+      background: var(--red);
+      transition: width .25s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-links a:hover::after { width: 100%; }
+    .nav-btn {
+      background: var(--red); color: #fff;
+      border: none; padding: 8px 20px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700; font-size: 0.9rem;
+      letter-spacing: 1px; text-transform: uppercase;
+      cursor: pointer; clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: background .2s, transform .15s;
+    }
+    .nav-btn:hover { background: var(--orange); transform: scale(1.05); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 88vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 80px 24px 60px;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid rgba(255,32,32,0.4);
+      background: rgba(255,32,32,0.08);
+      padding: 5px 16px; border-radius: 2px;
+      font-size: 0.78rem; font-weight: 700;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 28px;
+      animation: fadeUp .6s ease both;
+    }
+    .hero-badge::before {
+      content: ''; width: 6px; height: 6px;
+      background: var(--red); border-radius: 50%;
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.6)} }
+
+    .hero-title {
+      font-family: 'Black Ops One', sans-serif;
+      font-size: clamp(3.5rem, 10vw, 8rem);
+      line-height: .95;
+      letter-spacing: -1px;
+      animation: fadeUp .7s .1s ease both;
+    }
+    .hero-title .line1 { display: block; color: var(--text); }
+    .hero-title .line2 {
+      display: block;
+      background: linear-gradient(90deg, var(--red) 0%, var(--orange) 60%, var(--yellow) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: none;
+      filter: drop-shadow(0 0 30px rgba(255,32,32,0.5));
+    }
+
+    .hero-sub {
+      margin-top: 24px;
+      font-size: 1.15rem; color: var(--muted); max-width: 520px;
+      line-height: 1.6; font-weight: 400;
+      animation: fadeUp .7s .2s ease both;
+    }
+
+    .hero-ctas {
+      display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+      margin-top: 40px;
+      animation: fadeUp .7s .3s ease both;
+    }
+    .btn-primary, .btn-secondary {
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700; font-size: 1rem;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      padding: 14px 36px; border: none; cursor: pointer;
+      clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+      transition: transform .15s, box-shadow .2s;
+    }
+    .btn-primary {
+      background: linear-gradient(90deg, var(--red), var(--orange));
+      color: #fff;
+      box-shadow: 0 0 24px rgba(255,32,32,0.4);
+    }
+    .btn-primary:hover { transform: scale(1.06); box-shadow: 0 0 40px rgba(255,32,32,0.7); }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--red); color: var(--red); transform: scale(1.04); }
+
+    .hero-stats {
+      display: flex; gap: 48px; margin-top: 60px;
+      animation: fadeUp .7s .4s ease both;
+    }
+    .stat { text-align: center; }
+    .stat-num {
+      font-family: 'Black Ops One', sans-serif;
+      font-size: 2rem;
+      background: linear-gradient(90deg, var(--red), var(--orange));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .stat-label { font-size: 0.78rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--red), var(--orange), transparent);
+      margin: 0 auto; max-width: 700px;
+    }
+
+    /* ── FEATURES ── */
+    .section { padding: 80px 0; }
+    .section-label {
+      text-align: center;
+      font-size: 0.75rem; letter-spacing: 4px;
+      text-transform: uppercase; color: var(--red);
+      font-weight: 700; margin-bottom: 12px;
+    }
+    .section-title {
+      text-align: center;
+      font-family: 'Black Ops One', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      margin-bottom: 48px;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 32px 28px;
+      position: relative; overflow: hidden;
+      transition: border-color .25s, transform .2s;
+      clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+    }
+    .card::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 3px; height: 0;
+      background: linear-gradient(180deg, var(--red), var(--orange));
+      transition: height .3s;
+    }
+    .card:hover { border-color: rgba(255,32,32,0.4); transform: translateY(-4px); }
+    .card:hover::before { height: 100%; }
+    .card-icon {
+      font-size: 2.4rem; margin-bottom: 16px;
+      display: block;
+      filter: drop-shadow(0 0 8px rgba(255,106,0,0.5));
+    }
+    .card h3 {
+      font-family: 'Black Ops One', sans-serif;
+      font-size: 1.15rem; letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+    .card p { color: var(--muted); font-size: 0.95rem; line-height: 1.6; }
+
+    /* ── MODES ── */
+    .modes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .mode-card {
+      position: relative; overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      padding: 28px 20px; text-align: center;
+      cursor: pointer;
+      transition: all .25s;
+    }
+    .mode-card:hover { border-color: var(--orange); background: rgba(255,106,0,0.07); }
+    .mode-card.active {
+      border-color: var(--red);
+      background: rgba(255,32,32,0.1);
+      box-shadow: 0 0 20px rgba(255,32,32,0.2);
+    }
+    .mode-card .mode-icon { font-size: 2.2rem; margin-bottom: 10px; }
+    .mode-card h4 { font-family: 'Black Ops One', sans-serif; font-size: 1rem; margin-bottom: 6px; }
+    .mode-card span { font-size: 0.82rem; color: var(--muted); letter-spacing: 1px; }
+    .mode-badge {
+      position: absolute; top: 8px; right: 8px;
+      background: var(--red); color: #fff;
+      font-size: 0.65rem; font-weight: 700;
+      letter-spacing: 1px; padding: 2px 7px;
+      text-transform: uppercase;
+    }
+
+    /* ── LEADERBOARD ── */
+    .leaderboard {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .lb-header {
+      display: grid; grid-template-columns: 60px 1fr 100px 100px 80px;
+      padding: 14px 24px;
+      font-size: 0.72rem; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .lb-row {
+      display: grid; grid-template-columns: 60px 1fr 100px 100px 80px;
+      padding: 16px 24px; align-items: center;
+      border-bottom: 1px solid rgba(42,42,58,0.5);
+      transition: background .2s;
+      cursor: pointer;
+    }
+    .lb-row:hover { background: rgba(255,32,32,0.05); }
+    .lb-row:last-child { border-bottom: none; }
+    .rank {
+      font-family: 'Black Ops One', sans-serif;
+      font-size: 1.1rem;
+    }
+    .rank.gold   { color: var(--yellow); }
+    .rank.silver { color: #b0b8c8; }
+    .rank.bronze { color: #cd7f32; }
+    .rank.other  { color: var(--muted); }
+    .player { display: flex; align-items: center; gap: 12px; }
+    .avatar {
+      width: 36px; height: 36px; border-radius: 2px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.9rem;
+      clip-path: polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
+    }
+    .player-name { font-weight: 700; font-size: 1rem; }
+    .player-tag { font-size: 0.75rem; color: var(--muted); }
+    .kills { font-family: 'Black Ops One', sans-serif; color: var(--red); font-size: 1rem; }
+    .ratio { font-weight: 700; color: var(--orange); }
+    .wins { font-weight: 700; font-size: 0.9rem; }
+
+    /* ── NEWSLETTER ── */
+    .newsletter {
+      background: linear-gradient(135deg, rgba(255,32,32,0.08), rgba(255,106,0,0.06));
+      border: 1px solid rgba(255,32,32,0.25);
+      padding: 60px 40px; text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .newsletter::before {
+      content: 'CLASH ZONE';
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      font-family: 'Black Ops One', sans-serif;
+      font-size: 8rem; letter-spacing: 8px;
+      color: rgba(255,32,32,0.04);
+      white-space: nowrap; pointer-events: none;
+    }
+    .newsletter h2 {
+      font-family: 'Black Ops One', sans-serif;
+      font-size: 2rem; margin-bottom: 10px;
+    }
+    .newsletter p { color: var(--muted); margin-bottom: 28px; font-size: 1rem; }
+    .input-group { display: flex; gap: 10px; max-width: 460px; margin: 0 auto; }
+    .input-group input {
+      flex: 1; background: var(--darker);
+      border: 1px solid var(--border); color: var(--text);
+      padding: 13px 18px; font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem; outline: none;
+      transition: border-color .2s;
+    }
+    .input-group input:focus { border-color: var(--red); }
+    .input-group input::placeholder { color: var(--muted); }
+    .input-group button {
+      background: var(--red); color: #fff;
+      border: none; padding: 13px 26px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; cursor: pointer;
+      transition: background .2s;
+    }
+    .input-group button:hover { background: var(--orange); }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 30px; right: 30px;
+      background: var(--panel); border: 1px solid var(--red);
+      padding: 14px 22px; font-weight: 700;
+      font-size: 0.95rem; letter-spacing: 1px;
+      transform: translateY(80px); opacity: 0;
+      transition: all .3s; z-index: 999;
+      box-shadow: 0 0 24px rgba(255,32,32,0.3);
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 24px; text-align: center;
+      color: var(--muted); font-size: 0.85rem;
+    }
+    footer strong {
+      font-family: 'Black Ops One', sans-serif;
+      background: linear-gradient(90deg, var(--red), var(--orange));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 600px) {
+      .nav-links { display: none; }
+      .hero-stats { gap: 28px; }
+      .lb-header, .lb-row { grid-template-columns: 44px 1fr 80px; }
+      .lb-header span:nth-child(4),
+      .lb-header span:nth-child(5),
+      .lb-row .ratio,
+      .lb-row .wins { display: none; }
+      .input-group { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Animated background -->
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+<div class="sparks" id="sparks"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo">⚡ CLASH ZONE</div>
+    <ul class="nav-links">
+      <li><a href="#modes">Modes</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#leaderboard">Leaderboard</a></li>
+    </ul>
+    <button class="nav-btn" onclick="showToast('Launching game…')">PLAY NOW</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">⚡ Season 4 — Now Live</div>
+  <h1 class="hero-title">
+    <span class="line1">ENTER THE</span>
+    <span class="line2">CLASH ZONE</span>
+  </h1>
+  <p class="hero-sub">Dominate the battlefield. Outplay every opponent. Rise through the ranks in the most intense online combat arena ever built.</p>
+  <div class="hero-ctas">
+    <button class="btn-primary" onclick="showToast('Entering the Zone…')">⚔ ENTER BATTLE</button>
+    <button class="btn-secondary" onclick="showToast('Loading trailer…')">▶ WATCH TRAILER</button>
+  </div>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num" data-target="2400000">0</div>
+      <div class="stat-label">Players</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" data-target="980000">0</div>
+      <div class="stat-label">Daily Matches</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" data-target="150">0</div>
+      <div class="stat-label">Countries</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- GAME MODES -->
+<section class="section" id="modes">
+  <div class="wrapper">
+    <div class="section-label">Choose Your Fight</div>
+    <h2 class="section-title">GAME MODES</h2>
+    <div class="modes-grid">
+      <div class="mode-card active" onclick="selectMode(this)">
+        <span class="mode-badge">Popular</span>
+        <div class="mode-icon">💥</div>
+        <h4>DEATHMATCH</h4>
+        <span>SOLO • 16 PLAYERS</span>
+      </div>
+      <div class="mode-card" onclick="selectMode(this)">
+        <div class="mode-icon">🛡️</div>
+        <h4>TEAM CLASH</h4>
+        <span>5v5 • TACTICAL</span>
+      </div>
+      <div class="mode-card" onclick="selectMode(this)">
+        <span class="mode-badge">New</span>
+        <div class="mode-icon">👑</div>
+        <h4>KING ZONE</h4>
+        <span>CONTROL • 8v8</span>
+      </div>
+      <div class="mode-card" onclick="selectMode(this)">
+        <div class="mode-icon">🔥</div>
+        <h4>INFERNO</h4>
+        <span>SOLO • BATTLE ROYALE</span>
+      </div>
+      <div class="mode-card" onclick="selectMode(this)">
+        <div class="mode-icon">⚡</div>
+        <h4>BLITZ</h4>
+        <span>SPEED • 2 MINUTES</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="wrapper">
+    <div class="section-label">Why Clash Zone</div>
+    <h2 class="section-title">BATTLE FEATURES</h2>
+    <div class="cards">
+      <div class="card">
+        <span class="card-icon">🎯</span>
+        <h3>PRECISION ENGINE</h3>
+        <p>Server-side hit detection at 128 tick rate. Every shot counts exactly as intended, no excuses.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">🏆</span>
+        <h3>RANKED LADDER</h3>
+        <p>Climb from Bronze to Apex Predator. A fair ELO-based system matches you with opponents of equal skill.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">🗺️</span>
+        <h3>12 ARENAS</h3>
+        <p>From neon-lit urban streets to war-torn wastelands — every map designed for intense competitive play.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">⚙️</span>
+        <h3>LOADOUT BUILDER</h3>
+        <p>Over 300 weapon skins, 80+ perks, and unlimited class customization. Build your perfect warrior.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">📡</span>
+        <h3>GLOBAL SERVERS</h3>
+        <p>Low-latency servers across 30+ regions. Sub-20ms ping for most players worldwide.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">🎖️</span>
+        <h3>SEASONAL REWARDS</h3>
+        <p>Exclusive skins, weapon charms, and trophies every season. Grind hard, flex harder.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LEADERBOARD -->
+<section class="section" id="leaderboard">
+  <div class="wrapper">
+    <div class="section-label">Top Warriors</div>
+    <h2 class="section-title">GLOBAL LEADERBOARD</h2>
+    <div class="leaderboard">
+      <div class="lb-header">
+        <span>#</span><span>Player</span><span>Kills</span><span>K/D Ratio</span><span>Wins</span>
+      </div>
+      <!-- Rows generated by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- NEWSLETTER -->
+<section class="section">
+  <div class="wrapper">
+    <div class="newsletter">
+      <h2>JOIN THE WARZONE INTEL</h2>
+      <p>Get patch notes, event alerts & exclusive drops straight to your inbox.</p>
+      <div class="input-group">
+        <input type="email" id="emailInput" placeholder="your@email.com"/>
+        <button onclick="subscribe()">ENLIST</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p><strong>CLASH ZONE</strong> &nbsp;•&nbsp; Season 4 &nbsp;•&nbsp; All rights reserved &copy; 2025</p>
+</footer>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<script>
+  /* ── Floating sparks ── */
+  const sparksContainer = document.getElementById('sparks');
+  for (let i = 0; i < 30; i++) {
+    const s = document.createElement('div');
+    s.className = 'spark';
+    s.style.cssText = `
+      left: ${Math.random()*100}%;
+      width: ${Math.random()*3+1}px;
+      height: ${Math.random()*3+1}px;
+      animation-duration: ${Math.random()*8+5}s;
+      animation-delay: ${Math.random()*10}s;
+      background: ${Math.random()>.5?'#ffd700':'#ff6a00'};
+    `;
+    sparksContainer.appendChild(s);
+  }
+
+  /* ── Animated counters ── */
+  function animateCounter(el, target) {
+    const dur = 2000, start = performance.now();
+    const isBig = target > 9999;
+    function step(now) {
+      const p = Math.min((now - start) / dur, 1);
+      const ease = 1 - Math.pow(1 - p, 3);
+      const val = Math.floor(ease * target);
+      el.textContent = isBig ? (val/1e6).toFixed(1)+'M' : val.toLocaleString();
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const t = +e.target.dataset.target;
+        animateCounter(e.target, t);
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('[data-target]').forEach(el => io.observe(el));
+
+  /* ── Leaderboard data ── */
+  const players = [
+    { name:'ViperX', tag:'#9001', kills:48320, kd:4.81, wins:1203, color:'#e94040' },
+    { name:'NightOwl', tag:'#7722', kills:41780, kd:4.20, wins:1098, color:'#ff8c00' },
+    { name:'ShadowByte', tag:'#3399', kills:39540, kd:3.95, wins:987, color:'#cd7f32' },
+    { name:'ZeroKelvin', tag:'#5511', kills:36200, kd:3.60, wins:912, color:'#5588ff' },
+    { name:'PhantomX', tag:'#4400', kills:34100, kd:3.41, wins:876, color:'#44cc88' },
+    { name:'CrispShot', tag:'#2288', kills:31900, kd:3.10, wins:845, color:'#aa55ff' },
+    { name:'IronFang', tag:'#8833', kills:29700, kd:2.97, wins:801, color:'#ff55aa' },
+  ];
+
+  const rankClass = ['gold','silver','bronze','other','other','other','other'];
+  const rankIcon  = ['🥇','🥈','🥉','4','5','6','7'];
+  const lb = document.querySelector('.leaderboard');
+
+  players.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'lb-row';
+    row.innerHTML = `
+      <div class="rank ${rankClass[i]}">${rankIcon[i]}</div>
+      <div class="player">
+        <div class="avatar" style="background:${p.color}22;color:${p.color};">${p.name[0]}</div>
+        <div>
+          <div class="player-name">${p.name}</div>
+          <div class="player-tag">${p.tag}</div>
+        </div>
+      </div>
+      <div class="kills">${p.kills.toLocaleString()}</div>
+      <div class="ratio">${p.kd}</div>
+      <div class="wins">${p.wins}</div>
+    `;
+    lb.appendChild(row);
+  });
+
+  /* ── Mode select ── */
+  function selectMode(el) {
+    document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    const name = el.querySelector('h4').textContent;
+    showToast(`Mode selected: ${name}`);
+  }
+
+  /* ── Toast ── */
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = '⚡ ' + msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  /* ── Subscribe ── */
+  function subscribe() {
+    const val = document.getElementById('emailInput').value.trim();
+    if (!val || !val.includes('@')) { showToast('Enter a valid email!'); return; }
+    showToast('You\'re enlisted, warrior!');
+    document.getElementById('emailInput').value = '';
+  }
+
+  /* ── Cursor trail ── */
+  document.addEventListener('mousemove', e => {
+    if (Math.random() > 0.88) {
+      const dot = document.createElement('div');
+      dot.style.cssText = `
+        position:fixed;left:${e.clientX}px;top:${e.clientY}px;
+        width:4px;height:4px;border-radius:50%;pointer-events:none;
+        background:rgba(255,106,0,0.7);z-index:9999;
+        transition:opacity 0.5s,transform 0.5s;
+      `;
+      document.body.appendChild(dot);
+      requestAnimationFrame(() => { dot.style.opacity='0'; dot.style.transform='scale(3)'; });
+      setTimeout(() => dot.remove(), 500);
+    }
+  });
+</script>
+</body>
+</html>
